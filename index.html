@@ -3,895 +3,482 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEXORA — Next-Gen Interactive 3D Digital Agency</title>
+  <title>Nexora Web Agency — 3D & Digital Experiences</title>
   
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Google Fonts (Inter & JetBrains Mono) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Three.js CDN -->
+  <!-- CDN Libraries: Three.js for 3D graphics & GSAP for smooth animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  
-  <!-- GSAP & ScrollTrigger CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              dark: '#07090e',
-              card: '#0d121f',
-              accent: '#6366f1',
-              accentLight: '#818cf8',
-              glow: 'rgba(99, 102, 241, 0.35)',
-              cyan: '#06b6d4',
-              purple: '#a855f7'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          }
-        }
-      }
-    }
-  </script>
-
+  
   <style>
-    /* Global Styles & Reset */
-    * {
-      box-sizing: border-box;
-      scroll-behavior: smooth;
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --whatsapp-green: #25D366;
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     
     body {
-      background-color: #07090e;
-      color: #f3f4f6;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
       overflow-x: hidden;
-      margin: 0;
-      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* WebGL Canvas Background */
+    /* 3D Canvas Background */
     #webgl-canvas {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      z-index: 0;
+      z-index: -1;
       pointer-events: none;
     }
 
-    /* Glassmorphism Styles */
-    .glass-nav {
-      background: rgba(7, 9, 14, 0.7);
+    /* Header & Navigation */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 5%;
+      background: rgba(11, 15, 25, 0.7);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--glass-border);
     }
 
-    .glass-card {
-      background: rgba(13, 18, 31, 0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -1px;
+      cursor: pointer;
+    }
+    .logo span { color: var(--accent); }
+
+    .nav-links { display: flex; gap: 1rem; align-items: center; }
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      color: #fff;
+      background: var(--card-bg);
+    }
+    .nav-btn.btn-cta {
+      background: var(--accent);
+      color: #fff;
     }
 
-    .glass-card:hover {
-      border-color: rgba(99, 102, 241, 0.5);
-      box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3);
-    }
-
-    /* Text Gradient */
-    .text-gradient {
-      background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #6366f1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .text-gradient-cyan {
-      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    /* Custom Button Glow Effects */
-    .btn-glow {
+    /* Single Page Views Container */
+    main {
+      margin-top: 80px;
+      flex: 1;
       position: relative;
-      transition: all 0.3s ease;
     }
-    .btn-glow::before {
-      content: '';
-      position: absolute;
-      top: -2px; left: -2px; right: -2px; bottom: -2px;
-      background: linear-gradient(45deg, #6366f1, #06b6d4, #a855f7, #6366f1);
-      border-radius: 9999px;
-      z-index: -1;
-      filter: blur(10px);
+
+    .page-section {
+      display: none;
       opacity: 0;
-      transition: opacity 0.3s ease;
-      background-size: 300% 300%;
-      animation: glowing 8s ease infinite;
+      padding: 3rem 10%;
+      min-height: calc(100vh - 80px);
+      transition: opacity 0.4s ease;
     }
-    .btn-glow:hover::before {
-      opacity: 0.8;
-    }
-
-    @keyframes glowing {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #07090e;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1f2937;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #6366f1;
-    }
-
-    /* Custom Toast Message */
-    #toast {
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    #toast.show {
-      transform: translateY(0);
+    .page-section.active {
+      display: block;
       opacity: 1;
+    }
+
+    /* Typography & Utilities */
+    h1 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 1rem; }
+    h2 { font-size: 2.2rem; margin-bottom: 1.5rem; }
+    p { color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; }
+    .gradient-text {
+      background: linear-gradient(135deg, #a5b4fc, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Visual Grid & Cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      padding: 2rem;
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+
+    /* Option-Based Order Wizard Styles */
+    .wizard-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      backdrop-filter: blur(16px);
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .option-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+      padding: 1.25rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .option-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .option-card.selected {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.15);
+    }
+    .option-card h4 { color: #fff; margin-bottom: 0.25rem; }
+    .option-card p { font-size: 0.85rem; margin: 0; }
+
+    /* Summary & Dispatch Box */
+    .summary-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: #fff;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    .input-field:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-whatsapp {
+      width: 100%;
+      background: var(--whatsapp-green);
+      color: #fff;
+      font-weight: 700;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-whatsapp:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    }
+
+    /* Floating WhatsApp Button */
+    .floating-wa {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: var(--whatsapp-green);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      z-index: 1000;
+      text-decoration: none;
+      transition: transform 0.3s;
+    }
+    .floating-wa:hover {
+      transform: scale(1.1);
     }
   </style>
 </head>
-<body class="selection:bg-brand-accent selection:text-white relative">
+<body>
 
-  <!-- Three.js Interactive Background Canvas -->
+  <!-- WebGL 3D Canvas Background -->
   <canvas id="webgl-canvas"></canvas>
 
-  <!-- Navigation Bar -->
-  <header class="fixed top-0 left-0 right-0 z-50 glass-nav transition-all duration-300">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <!-- Logo -->
-      <a href="#" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-accent to-brand-cyan flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand-glow group-hover:scale-105 transition-transform">
-          N
-        </div>
-        <span class="text-2xl font-black tracking-wider text-white">NEXORA<span class="text-brand-accent">.</span></span>
-      </a>
-
-      <!-- Desktop Nav Links -->
-      <nav class="hidden md:flex items-center gap-8 font-medium text-sm text-gray-300">
-        <a href="#services" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-brand-accent hover:after:w-full after:transition-all">Services</a>
-        <a href="#work" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-brand-accent hover:after:w-full after:transition-all">Selected Work</a>
-        <a href="#about" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-brand-accent hover:after:w-full after:transition-all">About Studio</a>
-        <a href="#stats" class="hover:text-white transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-brand-accent hover:after:w-full after:transition-all">Metrics</a>
-      </nav>
-
-      <!-- CTA Button -->
-      <div class="hidden md:flex items-center gap-4">
-        <a href="#contact" class="btn-glow px-6 py-2.5 rounded-full bg-brand-accent hover:bg-brand-accentLight text-white font-semibold text-sm transition-all duration-300 shadow-lg shadow-brand-glow">
-          Start Project <i class="fa-solid fa-arrow-right-long ml-2 text-xs"></i>
-        </a>
-      </div>
-
-      <!-- Mobile Menu Toggle Button -->
-      <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white text-2xl focus:outline-none">
-        <i class="fa-solid fa-bars-staggered"></i>
-      </button>
-    </div>
-
-    <!-- Mobile Navigation Drawer -->
-    <div id="mobile-menu" class="hidden md:hidden glass-nav border-t border-gray-800/80 px-6 py-6 flex-col gap-4">
-      <a href="#services" class="mobile-nav-link text-gray-300 hover:text-white text-lg font-medium">Services</a>
-      <a href="#work" class="mobile-nav-link text-gray-300 hover:text-white text-lg font-medium">Selected Work</a>
-      <a href="#about" class="mobile-nav-link text-gray-300 hover:text-white text-lg font-medium">About Studio</a>
-      <a href="#stats" class="mobile-nav-link text-gray-300 hover:text-white text-lg font-medium">Metrics</a>
-      <a href="#contact" class="mobile-nav-link inline-block text-center mt-2 px-6 py-3 rounded-xl bg-brand-accent text-white font-semibold shadow-lg">
-        Start Project
-      </a>
-    </div>
+  <!-- Navigation Header -->
+  <header>
+    <a class="logo" onclick="switchPage('home')">NEXORA<span>.</span></a>
+    <nav class="nav-links">
+      <button class="nav-btn active" id="nav-home" onclick="switchPage('home')">Home</button>
+      <button class="nav-btn" id="nav-services" onclick="switchPage('services')">Services</button>
+      <button class="nav-btn" id="nav-showcase" onclick="switchPage('showcase')">3D Showcase</button>
+      <button class="nav-btn" id="nav-about" onclick="switchPage('about')">About</button>
+      <button class="nav-btn btn-cta" id="nav-order" onclick="switchPage('order')">WhatsApp Order</button>
+    </nav>
   </header>
 
-  <!-- Main Content Container -->
-  <main class="relative z-10 pt-20">
-
-    <!-- HERO SECTION -->
-    <section class="min-h-[90vh] flex items-center justify-center px-6 relative py-20">
-      <div class="max-w-5xl mx-auto text-center space-y-8 hero-content">
-        <!-- Status Badge -->
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-brand-accent/30 text-xs md:text-sm font-medium text-brand-accentLight">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span>Next-Gen Interactive Digital Agency</span>
-        </div>
-
-        <!-- Hero Headline -->
-        <h1 class="text-4xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.1] text-white">
-          We Build Interactive <br>
-          <span class="text-gradient">3D Web Experiences</span>
-        </h1>
-
-        <!-- Hero Subtitle -->
-        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-normal leading-relaxed">
-          Elevating digital presence with real-time WebGL graphics, custom 3D web applications, ultra-responsive UI architecture, and high-performance engineering.
-        </p>
-
-        <!-- CTA Buttons -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <a href="#contact" class="w-full sm:w-auto btn-glow px-8 py-4 rounded-full bg-brand-accent hover:bg-brand-accentLight text-white font-bold text-base transition-all duration-300 shadow-xl shadow-brand-glow flex items-center justify-center gap-3">
-            <span>Launch Your Project</span>
-            <i class="fa-solid fa-rocket text-sm"></i>
-          </a>
-          <a href="#work" class="w-full sm:w-auto px-8 py-4 rounded-full glass-card hover:bg-white/10 text-white font-semibold text-base transition-all duration-300 flex items-center justify-center gap-3">
-            <span>Explore Work</span>
-            <i class="fa-solid fa-play text-xs text-brand-accentLight"></i>
-          </a>
-        </div>
-
-        <!-- Controls Hint -->
-        <div class="pt-12 flex items-center justify-center gap-6 text-xs font-mono text-gray-500 uppercase tracking-widest">
-          <span class="flex items-center gap-2"><i class="fa-solid fa-hand-pointer text-brand-accent"></i> Move cursor to tilt geometry</span>
-          <span class="hidden sm:inline">•</span>
-          <span class="hidden sm:flex items-center gap-2"><i class="fa-solid fa-mouse-pointer text-brand-cyan"></i> Click to shift color space</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- SERVICES SECTION -->
-    <section id="services" class="py-28 px-6 max-w-7xl mx-auto">
-      <div class="text-center max-w-3xl mx-auto mb-16 space-y-4 section-header">
-        <h2 class="text-xs font-mono uppercase tracking-widest text-brand-accent font-semibold">Capabilities</h2>
-        <p class="text-3xl md:text-5xl font-extrabold text-white">Architecting the Digital Future</p>
-        <p class="text-gray-400 text-base md:text-lg">We merge visual artistry with rigorous web standards to craft unforgettable web experiences.</p>
-      </div>
-
-      <!-- Services Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Service 1 -->
-        <div class="glass-card rounded-2xl p-8 relative overflow-hidden group hover:-translate-y-2 transition-all">
-          <div class="w-14 h-14 rounded-2xl bg-brand-accent/20 border border-brand-accent/40 flex items-center justify-center text-brand-accent text-2xl mb-6 group-hover:scale-110 transition-transform">
-            <i class="fa-solid fa-cube"></i>
-          </div>
-          <h3 class="text-2xl font-bold text-white mb-3">3D & WebGL Development</h3>
-          <p class="text-gray-400 text-sm leading-relaxed mb-6">Custom 3D environments, shaders, and real-time interactive canvas graphics built with Three.js and custom GLTF pipelines.</p>
-          <ul class="space-y-2 text-xs font-mono text-gray-300 border-t border-gray-800/80 pt-4">
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-accent"></i> Three.js / GLSL Shaders</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-accent"></i> Interactive Product Visualizers</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-accent"></i> 60 FPS Optimized Pipelines</li>
-          </ul>
-        </div>
-
-        <!-- Service 2 -->
-        <div class="glass-card rounded-2xl p-8 relative overflow-hidden group hover:-translate-y-2 transition-all">
-          <div class="w-14 h-14 rounded-2xl bg-brand-cyan/20 border border-brand-cyan/40 flex items-center justify-center text-brand-cyan text-2xl mb-6 group-hover:scale-110 transition-transform">
-            <i class="fa-solid fa-bolt"></i>
-          </div>
-          <h3 class="text-2xl font-bold text-white mb-3">High-Performance Web Apps</h3>
-          <p class="text-gray-400 text-sm leading-relaxed mb-6">Blazing fast single-page applications and responsive websites engineered for high conversions, sub-second loads, and top SEO.</p>
-          <ul class="space-y-2 text-xs font-mono text-gray-300 border-t border-gray-800/80 pt-4">
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-cyan"></i> Modern React / Vue Frameworks</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-cyan"></i> Headless Architecture & CMS</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-cyan"></i> Perfect Core Web Vitals</li>
-          </ul>
-        </div>
-
-        <!-- Service 3 -->
-        <div class="glass-card rounded-2xl p-8 relative overflow-hidden group hover:-translate-y-2 transition-all">
-          <div class="w-14 h-14 rounded-2xl bg-brand-purple/20 border border-brand-purple/40 flex items-center justify-center text-brand-purple text-2xl mb-6 group-hover:scale-110 transition-transform">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-          </div>
-          <h3 class="text-2xl font-bold text-white mb-3">UI/UX Brand Strategy</h3>
-          <p class="text-gray-400 text-sm leading-relaxed mb-6">User-centric interface design systems with micro-animations, accessible color harmony, and strategic design thinking.</p>
-          <ul class="space-y-2 text-xs font-mono text-gray-300 border-t border-gray-800/80 pt-4">
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-purple"></i> Design Systems & Prototyping</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-purple"></i> Micro-interactions & Motion</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-purple"></i> Accessible WCAG Compliance</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- SELECTED WORK SHOWCASE SECTION -->
-    <section id="work" class="py-28 px-6 max-w-7xl mx-auto">
-      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-        <div>
-          <h2 class="text-xs font-mono uppercase tracking-widest text-brand-accent font-semibold mb-2">Portfolio</h2>
-          <p class="text-3xl md:text-5xl font-extrabold text-white">Selected Works</p>
-        </div>
-        <!-- Filter Tabs -->
-        <div class="flex flex-wrap gap-2" id="portfolio-filters">
-          <button data-filter="all" class="filter-btn active px-4 py-2 rounded-full text-xs font-semibold glass-card bg-brand-accent text-white border-brand-accent transition-all">All Projects</button>
-          <button data-filter="3d" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold glass-card text-gray-400 hover:text-white transition-all">3D / WebGL</button>
-          <button data-filter="webapp" class="filter-btn px-4 py-2 rounded-full text-xs font-semibold glass-card text-gray-400 hover:text-white transition-all">Web Applications</button>
-        </div>
-      </div>
-
-      <!-- Portfolio Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="portfolio-grid">
-
-        <!-- Project Item 1 -->
-        <div class="portfolio-item glass-card rounded-2xl overflow-hidden group" data-category="3d">
-          <div class="relative h-64 md:h-80 overflow-hidden bg-gradient-to-br from-indigo-900/40 to-slate-900/80 flex items-center justify-center">
-            <!-- Mock SVG Graphic -->
-            <svg class="w-32 h-32 text-indigo-500/40 group-hover:scale-110 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-              <polyline points="2 17 12 22 22 17"></polyline>
-              <polyline points="2 12 12 17 22 12"></polyline>
-            </svg>
-            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-80"></div>
-            <span class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-mono glass-card text-brand-accentLight border-brand-accent/30">WebGL / 3D</span>
-          </div>
-          <div class="p-8">
-            <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-brand-accentLight transition-colors">Aetheria Cybernetics</h3>
-            <p class="text-gray-400 text-sm mb-4">An immersive 3D spatial showcase for quantum computing hardware with custom particle interactions.</p>
-            <div class="flex items-center justify-between pt-4 border-t border-gray-800/80">
-              <span class="text-xs font-mono text-gray-500">Three.js • GSAP • React</span>
-              <a href="#contact" class="text-sm font-semibold text-brand-accent hover:text-white flex items-center gap-1 transition-colors">Case Study <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project Item 2 -->
-        <div class="portfolio-item glass-card rounded-2xl overflow-hidden group" data-category="webapp">
-          <div class="relative h-64 md:h-80 overflow-hidden bg-gradient-to-br from-cyan-900/40 to-slate-900/80 flex items-center justify-center">
-            <svg class="w-32 h-32 text-cyan-500/40 group-hover:scale-110 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-80"></div>
-            <span class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-mono glass-card text-brand-cyan border-brand-cyan/30">Web App</span>
-          </div>
-          <div class="p-8">
-            <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Vortex Financial OS</h3>
-            <p class="text-gray-400 text-sm mb-4">Real-time cryptocurrency analytics dashboard with dark-mode visual hierarchy and sub-second updates.</p>
-            <div class="flex items-center justify-between pt-4 border-t border-gray-800/80">
-              <span class="text-xs font-mono text-gray-500">Next.js • Tailwind • D3.js</span>
-              <a href="#contact" class="text-sm font-semibold text-brand-cyan hover:text-white flex items-center gap-1 transition-colors">Case Study <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project Item 3 -->
-        <div class="portfolio-item glass-card rounded-2xl overflow-hidden group" data-category="3d">
-          <div class="relative h-64 md:h-80 overflow-hidden bg-gradient-to-br from-purple-900/40 to-slate-900/80 flex items-center justify-center">
-            <svg class="w-32 h-32 text-purple-500/40 group-hover:scale-110 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
-              <path d="M2 12h20"></path>
-            </svg>
-            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-80"></div>
-            <span class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-mono glass-card text-brand-purple border-brand-purple/30">3D Experience</span>
-          </div>
-          <div class="p-8">
-            <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-brand-purple transition-colors">Orbital Metaverse Studio</h3>
-            <p class="text-gray-400 text-sm mb-4">Interactive 3D virtual art gallery allowing users to navigate and inspect digital art installations.</p>
-            <div class="flex items-center justify-between pt-4 border-t border-gray-800/80">
-              <span class="text-xs font-mono text-gray-500">WebGL • GLSL • WebAudio</span>
-              <a href="#contact" class="text-sm font-semibold text-brand-purple hover:text-white flex items-center gap-1 transition-colors">Case Study <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project Item 4 -->
-        <div class="portfolio-item glass-card rounded-2xl overflow-hidden group" data-category="webapp">
-          <div class="relative h-64 md:h-80 overflow-hidden bg-gradient-to-br from-blue-900/40 to-slate-900/80 flex items-center justify-center">
-            <svg class="w-32 h-32 text-blue-500/40 group-hover:scale-110 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-            </svg>
-            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-80"></div>
-            <span class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-mono glass-card text-blue-400 border-blue-400/30">SaaS Platform</span>
-          </div>
-          <div class="p-8">
-            <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">Luminary Cloud Engine</h3>
-            <p class="text-gray-400 text-sm mb-4">Enterprise cloud infrastructure management console with high-density data visualizations.</p>
-            <div class="flex items-center justify-between pt-4 border-t border-gray-800/80">
-              <span class="text-xs font-mono text-gray-500">Vue 3 • TypeScript • WebSockets</span>
-              <a href="#contact" class="text-sm font-semibold text-blue-400 hover:text-white flex items-center gap-1 transition-colors">Case Study <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ABOUT SECTION -->
-    <section id="about" class="py-28 px-6 max-w-7xl mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div class="space-y-6">
-          <h2 class="text-xs font-mono uppercase tracking-widest text-brand-accent font-semibold">About Studio</h2>
-          <h3 class="text-3xl md:text-5xl font-black text-white leading-tight">Engineering Meets High Artistry</h3>
-          <p class="text-gray-400 text-base leading-relaxed">
-            At NEXORA, we believe the modern web should be more than flat pages and static text. We combine cutting-edge 3D computer graphics with intuitive web development to craft memorable, high-converting digital experiences.
-          </p>
-          <div class="space-y-4 pt-2">
-            <div class="flex items-start gap-4">
-              <div class="w-10 h-10 rounded-lg bg-brand-accent/20 flex items-center justify-center text-brand-accent shrink-0 mt-1">
-                <i class="fa-solid fa-microchip"></i>
-              </div>
-              <div>
-                <h4 class="text-white font-bold">GPU-Accelerated Visuals</h4>
-                <p class="text-gray-400 text-sm">Lightweight WebGL shaders designed to run smoothly at 60 FPS across mobile and desktop devices.</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-4">
-              <div class="w-10 h-10 rounded-lg bg-brand-cyan/20 flex items-center justify-center text-brand-cyan shrink-0 mt-1">
-                <i class="fa-solid fa-shield-halved"></i>
-              </div>
-              <div>
-                <h4 class="text-white font-bold">Production-Grade Quality</h4>
-                <p class="text-gray-400 text-sm">Clean architecture, strict accessibility compliance, and robust error handling built-in by default.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Visual Feature Box -->
-        <div class="glass-card rounded-3xl p-8 relative overflow-hidden border-brand-accent/20">
-          <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-brand-accent/20 rounded-full blur-3xl pointer-events-none"></div>
-          <div class="space-y-6">
-            <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-              <span class="text-xs font-mono text-gray-400">STATUS // ACTIVE</span>
-              <span class="text-xs font-mono text-brand-accentLight">AGENCY SPECIFICATIONS</span>
-            </div>
-            <div class="grid grid-cols-2 gap-4 text-sm font-mono">
-              <div class="glass-card p-4 rounded-xl">
-                <div class="text-gray-500 text-xs mb-1">FOUNDED</div>
-                <div class="text-white font-bold">2021</div>
-              </div>
-              <div class="glass-card p-4 rounded-xl">
-                <div class="text-gray-500 text-xs mb-1">CORE ENGINE</div>
-                <div class="text-brand-cyan font-bold">Three.js / WebGL</div>
-              </div>
-              <div class="glass-card p-4 rounded-xl">
-                <div class="text-gray-500 text-xs mb-1">ACCESSIBILITY</div>
-                <div class="text-emerald-400 font-bold">WCAG AAA</div>
-              </div>
-              <div class="glass-card p-4 rounded-xl">
-                <div class="text-gray-500 text-xs mb-1">PERFORMANCE</div>
-                <div class="text-brand-purple font-bold">100 / 100 Score</div>
-              </div>
-            </div>
-            <div class="p-4 rounded-xl bg-brand-dark/80 border border-gray-800 font-mono text-xs text-gray-400 space-y-1">
-              <p class="text-emerald-400">&gt; Nexora.initStudioPipeline()</p>
-              <p>&gt; Shader compilation: COMPLETE</p>
-              <p>&gt; Target FPS: 60 [STABLE]</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- STATS / PROOF SECTION -->
-    <section id="stats" class="py-20 px-6 border-y border-gray-800/80 bg-brand-card/30">
-      <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        <!-- Stat 1 -->
-        <div class="space-y-2">
-          <div class="text-4xl md:text-6xl font-black text-white font-mono counter" data-target="50">0</div>
-          <p class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wider">Projects Launched</p>
-        </div>
-        <!-- Stat 2 -->
-        <div class="space-y-2">
-          <div class="text-4xl md:text-6xl font-black text-brand-cyan font-mono counter" data-target="99">0</div>
-          <p class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wider">% Client Satisfaction</p>
-        </div>
-        <!-- Stat 3 -->
-        <div class="space-y-2">
-          <div class="text-4xl md:text-6xl font-black text-brand-accentLight font-mono counter" data-target="60">0</div>
-          <p class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wider">FPS WebGL Standard</p>
-        </div>
-        <!-- Stat 4 -->
-        <div class="space-y-2">
-          <div class="text-4xl md:text-6xl font-black text-brand-purple font-mono counter" data-target="15">0</div>
-          <p class="text-xs md:text-sm font-medium text-gray-400 uppercase tracking-wider">Design Industry Awards</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- CONTACT / CALL TO ACTION SECTION -->
-    <section id="contact" class="py-28 px-6 max-w-5xl mx-auto">
-      <div class="glass-card rounded-3xl p-8 md:p-14 relative overflow-hidden border-brand-accent/30 shadow-2xl">
-        <!-- Ambient Glow Background -->
-        <div class="absolute -top-32 -left-32 w-80 h-80 bg-brand-accent/30 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-brand-cyan/20 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="relative z-10 max-w-2xl mx-auto text-center space-y-4 mb-10">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card border border-emerald-500/40 text-xs font-mono text-emerald-400">
-            <i class="fa-brands fa-whatsapp text-sm"></i> Direct WhatsApp Order Patching
-          </div>
-          <h2 class="text-xs font-mono uppercase tracking-widest text-brand-accent font-semibold block">Start A Project</h2>
-          <h3 class="text-3xl md:text-5xl font-black text-white">Patch Your Order Directly to WhatsApp</h3>
-          <p class="text-gray-400 text-sm md:text-base">Fill out the project specification below. Clicking send instantly formats your order payload and routes it directly to our WhatsApp chat.</p>
-        </div>
-
-        <!-- Contact Form -->
-        <form id="contact-form" class="relative z-10 max-w-2xl mx-auto space-y-6">
-          <!-- WhatsApp Target Number Badge -->
-          <div class="p-4 rounded-xl bg-brand-dark/90 border border-brand-accent/30 flex items-center justify-between gap-4">
-            <div class="space-y-1">
-              <span class="text-xs font-mono text-brand-accentLight uppercase font-semibold flex items-center gap-2">
-                <i class="fa-brands fa-whatsapp text-emerald-400 text-base"></i> Official Direct WhatsApp
-              </span>
-              <p class="text-gray-400 text-xs">All orders are directly routed to our verified business channel.</p>
-            </div>
-            <div class="px-4 py-2 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 font-mono text-sm font-bold flex items-center gap-2 shrink-0">
-              <i class="fa-solid fa-circle text-[8px] animate-pulse"></i>
-              +92 336 8177909
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="name" class="block text-xs font-mono text-gray-400 uppercase mb-2">Your Full Name *</label>
-              <input type="text" id="name" required placeholder="Alex Mercer" class="w-full px-5 py-3.5 rounded-xl bg-brand-dark/80 border border-gray-800 text-white placeholder-gray-600 focus:outline-none focus:border-brand-accent transition-colors">
-            </div>
-            <div>
-              <label for="email" class="block text-xs font-mono text-gray-400 uppercase mb-2">Email Address *</label>
-              <input type="email" id="email" required placeholder="alex@company.com" class="w-full px-5 py-3.5 rounded-xl bg-brand-dark/80 border border-gray-800 text-white placeholder-gray-600 focus:outline-none focus:border-brand-accent transition-colors">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label for="service-type" class="block text-xs font-mono text-gray-400 uppercase mb-2">Service Needed *</label>
-              <select id="service-type" class="w-full px-4 py-3.5 rounded-xl bg-brand-dark/80 border border-gray-800 text-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
-                <option value="Interactive 3D / WebGL Website">3D / WebGL Website</option>
-                <option value="Full-stack Web Application">Full-stack Web App</option>
-                <option value="UI/UX Design & Brand System">UI/UX & Branding</option>
-                <option value="E-Commerce Storefront">E-Commerce Store</option>
-              </select>
-            </div>
-            <div>
-              <label for="budget" class="block text-xs font-mono text-gray-400 uppercase mb-2">Estimated Budget *</label>
-              <select id="budget" class="w-full px-4 py-3.5 rounded-xl bg-brand-dark/80 border border-gray-800 text-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
-                <option value="10K-15K">10K-15K</option>
-                <option value="20K-25K" selected>20K-25K</option>
-                <option value="30K-35K">30K-35K</option>
-                <option value="40K+">40K+</option>
-              </select>
-            </div>
-            <div>
-              <label for="timeline" class="block text-xs font-mono text-gray-400 uppercase mb-2">Target Timeline *</label>
-              <select id="timeline" class="w-full px-4 py-3.5 rounded-xl bg-brand-dark/80 border border-gray-800 text-white focus:outline-none focus:border-brand-accent transition-colors text-sm">
-                <option value="Urgent (1-2 Weeks)">Urgent (1-2 Weeks)</option>
-                <option value="Standard (3-4 Weeks)" selected>Standard (3-4 Weeks)</option>
-                <option value="Flexible (1-2 Months)">Flexible (1-2 Months)</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label for="message" class="block text-xs font-mono text-gray-400 uppercase mb-2">Project Specifications & Notes *</label>
-            <textarea id="message" rows="4" required placeholder="Describe your vision, key features, and requirements..." class="w-full px-5 py-3.5 rounded-xl bg-brand-dark/80 border border-gray-800 text-white placeholder-gray-600 focus:outline-none focus:border-brand-accent transition-colors resize-none"></textarea>
-          </div>
-
-          <button type="submit" class="w-full btn-glow py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base transition-all duration-300 shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-3">
-            <i class="fa-brands fa-whatsapp text-xl"></i>
-            <span>ORDER NOW</span>
-          </button>
-        </form>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Persistent Floating WhatsApp Action Button -->
-  <a href="https://wa.me/923368177909" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp (+92 336 8177909)" class="fixed bottom-8 left-8 z-50 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center text-2xl shadow-2xl shadow-emerald-500/50 hover:scale-110 transition-all duration-300 group">
-    <i class="fa-brands fa-whatsapp"></i>
-    <span class="absolute left-16 px-3 py-1.5 rounded-lg bg-brand-card border border-emerald-500/40 text-xs font-mono text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
-      Chat on +92 336 8177909
-    </span>
-  </a>
-
-  <!-- FOOTER -->
-  <footer class="border-t border-gray-800/80 bg-brand-dark relative z-10 py-16 px-6">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-      <!-- Left Info -->
-      <div class="space-y-3 text-center md:text-left">
-        <a href="#" class="inline-flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-brand-accent flex items-center justify-center text-white font-bold text-lg">N</div>
-          <span class="text-xl font-bold tracking-wider text-white">NEXORA<span class="text-brand-accent">.</span></span>
-        </a>
-        <p class="text-gray-500 text-xs max-w-sm">Crafting next-generation digital experiences through 3D web graphics, modern frameworks, and high-performance design systems.</p>
-      </div>
-
-      <!-- Quick Social Links -->
-      <div class="flex items-center gap-6 text-gray-400 text-lg">
-        <a href="#" class="hover:text-brand-accent transition-colors"><i class="fa-brands fa-github"></i></a>
-        <a href="#" class="hover:text-brand-cyan transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
-        <a href="#" class="hover:text-brand-purple transition-colors"><i class="fa-brands fa-dribbble"></i></a>
-        <a href="#" class="hover:text-blue-500 transition-colors"><i class="fa-brands fa-linkedin"></i></a>
-      </div>
-
-      <!-- Back to Top Button -->
-      <div>
-        <button id="back-to-top" class="w-12 h-12 rounded-full glass-card hover:bg-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-all">
-          <i class="fa-solid fa-arrow-up"></i>
+  <!-- Single Page Views Container -->
+  <main>
+    <!-- PAGE 1: HOME -->
+    <section id="page-home" class="page-section active">
+      <div style="max-width: 700px; padding-top: 4rem;">
+        <span style="color: var(--accent); font-weight: 600;">Interactive Web Agency</span>
+        <h1>Building Next-Gen <span class="gradient-text">3D Web Apps</span></h1>
+        <p>We build high-performance web applications equipped with native 3D WebGL graphics and direct option-based WhatsApp order patching.</p>
+        <button class="btn-whatsapp" style="width: auto; padding: 14px 28px;" onclick="switchPage('order')">
+          Configure & Order via WhatsApp
         </button>
       </div>
-    </div>
+    </section>
 
-    <!-- Copyright -->
-    <div class="max-w-7xl mx-auto border-t border-gray-900 mt-12 pt-8 text-center text-xs text-gray-600 font-mono">
-      © 2026 NEXORA Web Agency. All rights reserved.
-    </div>
-  </footer>
+    <!-- PAGE 2: SERVICES -->
+    <section id="page-services" class="page-section">
+      <h2>Our Core Services</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>✨ 3D WebGL Experiences</h3>
+          <p>Interactive 3D geometry and graphics embedded directly into your website browser.</p>
+        </div>
+        <div class="card">
+          <h3>⚡ High-Speed Web Development</h3>
+          <p>Clean code built for ultimate page load speeds, high core web vitals, and conversion optimization.</p>
+        </div>
+        <div class="card">
+          <h3>📲 Direct WhatsApp Integration</h3>
+          <p>Bypass cumbersome shopping carts and patch orders straight to your WhatsApp business account.</p>
+        </div>
+      </div>
+    </section>
 
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-8 right-8 z-50 glass-card bg-brand-card/90 border-emerald-500/50 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
-    <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
-    <div>
-      <h5 class="text-sm font-bold">Message Sent Successfully!</h5>
-      <p class="text-xs text-gray-400">Our studio team will get back to you within 24 hours.</p>
-    </div>
-  </div>
+    <!-- PAGE 3: 3D SHOWCASE -->
+    <section id="page-showcase" class="page-section">
+      <h2>Interactive 3D Graphics</h2>
+      <p>Move your mouse around the screen to interact with the background WebGL render engine.</p>
+      <div class="card" style="max-width: 500px;">
+        <h4>Built using Three.js</h4>
+        <p>Dynamic icosahedron mesh rendering with realtime ambient light calculation and custom mouse tilt controls.</p>
+      </div>
+    </section>
 
-  <!-- JAVASCRIPT: THREE.JS & INTERACTIVITY -->
+    <!-- PAGE 4: ABOUT -->
+    <section id="page-about" class="page-section">
+      <h2>About Nexora Agency</h2>
+      <p>We merge cutting-edge frontend web technologies with interactive options and direct customer communication channels.</p>
+    </section>
+
+    <!-- PAGE 5: OPTION-BASED WHATSAPP ORDER WIZARD -->
+    <section id="page-order" class="page-section">
+      <div class="wizard-container">
+        <h2>Interactive Order Builder</h2>
+        <p>Select your preferred options below to generate your WhatsApp order payload.</p>
+
+        <!-- Step 1: Project Type -->
+        <h4 style="color: var(--accent); margin: 1.5rem 0 0.5rem;">1. Select Project Type</h4>
+        <div class="option-grid">
+          <div class="option-card selected" onclick="selectOption(this, 'type', '3D Interactive Website')">
+            <h4>3D Web Application</h4>
+            <p>WebGL elements & animations</p>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 'type', 'E-Commerce Store')">
+            <h4>E-Commerce Store</h4>
+            <p>Product catalog & WhatsApp orders</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Features -->
+        <h4 style="color: var(--accent); margin: 1.5rem 0 0.5rem;">2. Choose Add-on Features</h4>
+        <div class="option-grid">
+          <div class="option-card selected" onclick="selectOption(this, 'feature', 'WhatsApp Integration')">
+            <h4>WhatsApp Patching</h4>
+            <p>Direct message routing</p>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 'feature', 'CMS Dashboard')">
+            <h4>Content Management</h4>
+            <p>Easy text & media updates</p>
+          </div>
+        </div>
+
+        <!-- Step 3: Budget Range -->
+        <h4 style="color: var(--accent); margin: 1.5rem 0 0.5rem;">3. Select Budget</h4>
+        <div class="option-grid">
+          <div class="option-card selected" onclick="selectOption(this, 'budget', '$500 - $1,500')">
+            <h4>Standard</h4>
+            <p>$500 - $1,500</p>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 'budget', '$1,500 - $3,000')">
+            <h4>Premium</h4>
+            <p>$1,500 - $3,000</p>
+          </div>
+        </div>
+
+        <!-- Step 4: Customer Details -->
+        <h4 style="color: var(--accent); margin: 1.5rem 0 0.5rem;">4. Your Details</h4>
+        <input type="text" id="cust-name" class="input-field" placeholder="Your Full Name">
+        <input type="text" id="cust-notes" class="input-field" placeholder="Additional Order Details or Requirements">
+
+        <!-- Step 5: Live Summary & Direct WhatsApp Button -->
+        <div class="summary-box">
+          <p style="margin: 0; color: #fff;"><strong>Target Recipient:</strong> 03368177909 (+923368177909)</p>
+          <p style="margin: 5px 0 0 0; font-size: 0.9rem;" id="summary-text">Selected: 3D Interactive Website | WhatsApp Integration | Budget: $500 - $1,500</p>
+        </div>
+
+        <button class="btn-whatsapp" onclick="dispatchWhatsAppOrder()">
+          Send Order Direct to WhatsApp (03368177909)
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Quick WhatsApp Button -->
+  <a href="https://wa.me/923368177909" target="_blank" class="floating-wa" title="Chat on WhatsApp">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+    </svg>
+  </a>
+
   <script>
-    // --- 1. THREE.JS INTERACTIVE 3D BACKGROUND ---
-    let scene, camera, renderer, geomMesh, wireMesh, particlesMesh;
+    // --- 1. Multi-Page Navigation Logic ---
+    function switchPage(pageId) {
+      document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      
+      const targetPage = document.getElementById(`page-${pageId}`);
+      const targetNav = document.getElementById(`nav-${pageId}`);
+      
+      if(targetPage) targetPage.classList.add('active');
+      if(targetNav) targetNav.classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    // --- 2. Option Selection Engine ---
+    const selectedOptions = {
+      type: '3D Interactive Website',
+      feature: 'WhatsApp Integration',
+      budget: '$500 - $1,500'
+    };
+
+    function selectOption(element, category, value) {
+      const parent = element.parentElement;
+      parent.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+      element.classList.add('selected');
+
+      selectedOptions[category] = value;
+
+      document.getElementById('summary-text').innerText = 
+        `Selected: ${selectedOptions.type} | ${selectedOptions.feature} | Budget: ${selectedOptions.budget}`;
+    }
+
+    // --- 3. WhatsApp Direct Dispatch Engine ---
+    function dispatchWhatsAppOrder() {
+      const name = document.getElementById('cust-name').value || "Not Specified";
+      const notes = document.getElementById('cust-notes').value || "None";
+      const targetNumber = "923368177909"; // Hardcoded target number for 03368177909
+
+      const message = 
+        `*NEW ORDER RECEIVED*\n\n` +
+        `*Customer Name:* ${name}\n` +
+        `*Project Type:* ${selectedOptions.type}\n` +
+        `*Selected Feature:* ${selectedOptions.feature}\n` +
+        `*Target Budget:* ${selectedOptions.budget}\n` +
+        `*Additional Notes:* ${notes}\n\n` +
+        `Please review and confirm my order!`;
+
+      const encodedURL = `https://wa.me/${targetNumber}?text=${encodeURIComponent(message)}`;
+      window.open(encodedURL, '_blank');
+    }
+
+    // --- 4. Interactive Three.js 3D Background Engine ---
+    const canvas = document.querySelector('#webgl-canvas');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 5;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // 3D Geometry
+    const geometry = new THREE.IcosahedronGeometry(2, 2);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x6366f1,
+      wireframe: true,
+      roughness: 0.2,
+      metalness: 0.8
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // Light
+    const pointLight = new THREE.PointLight(0xffffff, 1);
+    pointLight.position.set(5, 5, 5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(pointLight, ambientLight);
+
+    // Mouse Tracking Animation
     let mouseX = 0, mouseY = 0;
-    let targetX = 0, targetY = 0;
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
 
-    const windowHalfX = window.innerWidth / 2;
-    const windowHalfY = window.innerHeight / 2;
-
-    function initThreeJS() {
-      const canvas = document.getElementById('webgl-canvas');
-      
-      // Scene
-      scene = new THREE.Scene();
-
-      // Camera
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 7;
-
-      // Renderer
-      renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-      // 3D Geodesic Shape (Icosahedron)
-      const geometry = new THREE.IcosahedronGeometry(2.8, 2);
-      
-      // Outer Wireframe Material
-      const wireMaterial = new THREE.MeshBasicMaterial({
-        color: 0x6366f1,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.25
-      });
-      wireMesh = new THREE.Mesh(geometry, wireMaterial);
-      scene.add(wireMesh);
-
-      // Inner Solid Glossy Geometry
-      const innerGeometry = new THREE.IcosahedronGeometry(2.2, 1);
-      const innerMaterial = new THREE.MeshStandardMaterial({
-        color: 0x07090e,
-        roughness: 0.1,
-        metalness: 0.9,
-        wireframe: false
-      });
-      geomMesh = new THREE.Mesh(innerGeometry, innerMaterial);
-      scene.add(geomMesh);
-
-      // Floating Particle Stars
-      const particleGeo = new THREE.BufferGeometry();
-      const particleCount = 200;
-      const posArray = new Float32Array(particleCount * 3);
-
-      for (let i = 0; i < particleCount * 3; i++) {
-        posArray[i] = (Math.random() - 0.5) * 20;
-      }
-
-      particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-      const particleMat = new THREE.PointsMaterial({
-        size: 0.03,
-        color: 0x818cf8,
-        transparent: true,
-        opacity: 0.6
-      });
-
-      particlesMesh = new THREE.Points(particleGeo, particleMat);
-      scene.add(particlesMesh);
-
-      // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-      scene.add(ambientLight);
-
-      const pointLight1 = new THREE.PointLight(0x6366f1, 2, 20);
-      pointLight1.position.set(5, 5, 5);
-      scene.add(pointLight1);
-
-      const pointLight2 = new THREE.PointLight(0x06b6d4, 2, 20);
-      pointLight2.position.set(-5, -5, -5);
-      scene.add(pointLight2);
-
-      // Event Listeners
-      document.addEventListener('mousemove', onDocumentMouseMove);
-      window.addEventListener('resize', onWindowResize);
-      window.addEventListener('click', onCanvasClick);
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      mesh.rotation.x += 0.003;
+      mesh.rotation.y += 0.005;
+      mesh.rotation.y += mouseX * 0.03;
+      mesh.rotation.x += -mouseY * 0.03;
+      renderer.render(scene, camera);
     }
+    renderLoop();
 
-    function onDocumentMouseMove(event) {
-      mouseX = (event.clientX - windowHalfX) * 0.001;
-      mouseY = (event.clientY - windowHalfY) * 0.001;
-    }
-
-    function onWindowResize() {
+    window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    // Color shift on mouse click
-    let colorToggle = false;
-    function onCanvasClick() {
-      colorToggle = !colorToggle;
-      const newColor = colorToggle ? 0x06b6d4 : 0x6366f1;
-      gsap.to(wireMesh.material.color, {
-        r: new THREE.Color(newColor).r,
-        g: new THREE.Color(newColor).g,
-        b: new THREE.Color(newColor).b,
-        duration: 1
-      });
-    }
-
-    function animateThreeJS() {
-      requestAnimationFrame(animateThreeJS);
-
-      targetX = mouseX;
-      targetY = mouseY;
-
-      // Continuous Geometry Rotations
-      wireMesh.rotation.y += 0.003;
-      wireMesh.rotation.x += 0.002;
-
-      geomMesh.rotation.y -= 0.002;
-      geomMesh.rotation.x -= 0.001;
-
-      particlesMesh.rotation.y += 0.0005;
-
-      // Smooth Inertia Reactivity to Cursor
-      wireMesh.rotation.y += (targetX - wireMesh.rotation.y) * 0.05;
-      wireMesh.rotation.x += (targetY - wireMesh.rotation.x) * 0.05;
-
-      renderer.render(scene, camera);
-    }
-
-
-    // --- 2. GSAP SCROLL ANIMATIONS & INTERACTION LOGIC ---
-    window.onload = function() {
-      // Initialize Three.js Loop
-      initThreeJS();
-      animateThreeJS();
-
-      // Register ScrollTrigger
-      gsap.registerPlugin(ScrollTrigger);
-
-      // Hero Elements Entrance Animation
-      gsap.from(".hero-content > *", {
-        y: 40,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.15,
-        ease: "power3.out"
-      });
-
-      // Section Headers Reveal
-      gsap.utils.toArray('.section-header').forEach(header => {
-        gsap.from(header, {
-          scrollTrigger: {
-            trigger: header,
-            start: "top 85%",
-          },
-          y: 30,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power2.out"
-        });
-      });
-
-      // Stats Counters Animation
-      const counters = document.querySelectorAll('.counter');
-      counters.forEach(counter => {
-        const target = +counter.getAttribute('data-target');
-        gsap.to(counter, {
-          scrollTrigger: {
-            trigger: '#stats',
-            start: 'top 80%',
-          },
-          innerText: target,
-          duration: 2,
-          snap: { innerText: 1 },
-          ease: 'power1.out'
-        });
-      });
-
-      // Mobile Menu Toggle Logic
-      const mobileBtn = document.getElementById('mobile-menu-btn');
-      const mobileMenu = document.getElementById('mobile-menu');
-      const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-
-      mobileBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
-        mobileMenu.classList.toggle('flex');
-      });
-
-      mobileNavLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          mobileMenu.classList.add('hidden');
-        });
-      });
-
-      // Contact Form Submission (Direct WhatsApp Patching)
-      const contactForm = document.getElementById('contact-form');
-      const toast = document.getElementById('toast');
-
-      contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        // Locked WhatsApp Number
-        const targetNumber = "923368177909";
-        
-        // Extract field values
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const service = document.getElementById('service-type').value;
-        const budget = document.getElementById('budget').value;
-        const timeline = document.getElementById('timeline').value;
-        const message = document.getElementById('message').value.trim();
-
-        // Construct formatted order string
-        const rawMessage = 
-          `*NEW ORDER FOR NEXORA WEB AGENCY*\n\n` +
-          `*Name:* ${name}\n` +
-          `*Email:* ${email}\n` +
-          `*Service:* ${service}\n` +
-          `*Budget:* ${budget}\n` +
-          `*Timeline:* ${timeline}\n\n` +
-          `*Details:*\n${message}`;
-
-        // Encode message for Web URL
-        const encodedMessage = encodeURIComponent(rawMessage);
-        const whatsappUrl = `https://wa.me/${targetNumber}?text=${encodedMessage}`;
-
-        // Direct dispatch to WhatsApp
-        window.open(whatsappUrl, '_blank');
-
-        // Show Success Toast
-        toast.classList.add('show');
-        contactForm.reset();
-
-        setTimeout(() => {
-          toast.classList.remove('show');
-        }, 5000);
-      });
-
-      // Back to Top Smooth Scroll
-      document.getElementById('back-to-top').addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    };
+    });
   </script>
 </body>
 </html>
